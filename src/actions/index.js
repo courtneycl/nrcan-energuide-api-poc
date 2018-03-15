@@ -16,5 +16,5 @@ export const SAVE_FILEID_LOOKUP_RESULTS = 'SAVE_FILEID_LOOKUP_RESULTS'
 
 export const saveFileIdData = data => ({
   type: SAVE_FILEID_LOOKUP_RESULTS,
-  data,
+  data: data.results,
 })

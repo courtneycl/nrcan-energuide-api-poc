@@ -3,7 +3,6 @@ import { NavLink } from 'redux-first-router-link'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import { withApollo } from 'react-apollo'
-import { saveLocationData } from '../actions'
 import gql from 'graphql-tag'
 import { Trans } from 'lingui-react'
 
@@ -22,7 +21,7 @@ class SearchLocation extends Component {
   }
 
   async handleFormData(data) {
-    let { client } = this.props
+    let { client, save } = this.props
 
     let response = await client.query({
       query: gql`
@@ -56,8 +55,7 @@ class SearchLocation extends Component {
     let { data: { dwellings } } = response
 
     console.log('Response from the server:', dwellings) // eslint-disable-line no-console
-    // TODO: Handle error case
-    this.props.save(dwellings)
+    save(dwellings)
   }
 
   render() {
