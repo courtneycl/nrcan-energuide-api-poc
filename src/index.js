@@ -14,7 +14,7 @@ import { ApolloProvider } from 'react-apollo'
 import App from './components/App'
 
 const client = new ApolloClient({
-  link: new HttpLink({ uri: '/graphql' }),
+  link: new HttpLink({ uri: 'http://nrcanapi.cds-snc.ca/graphql' }),
   cache: new InMemoryCache(),
   ssrMode: true,
 })
@@ -34,7 +34,7 @@ const render = App => {
         </Provider>
       </AppContainer>
     </ApolloProvider>,
-    root
+    root,
   )
 }
 

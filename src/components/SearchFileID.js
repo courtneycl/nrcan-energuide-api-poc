@@ -1,27 +1,32 @@
 import React, { Component } from 'react'
+import { Field, reduxForm } from 'redux-form'
 import { NavLink } from 'redux-first-router-link'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
-import { withApollo } from 'react-apollo'
-import { saveLocationData } from '../actions'
+import { compose, withApollo } from 'react-apollo'
 import gql from 'graphql-tag'
 import { Trans } from 'lingui-react'
+import { saveFileIdData } from '../actions'
+import DataTable from './DataTable'
 
-class SearchLocation extends Component {
+class SearchFileID extends Component {
   static propTypes = {
-    saveLocationData: PropTypes.func.isRequired,
+    saveFileIdData: PropTypes.func.isRequired,
     dispatch: PropTypes.func.isRequired,
     handleSubmit: PropTypes.func.isRequired,
     pristine: PropTypes.bool.isRequired,
     reset: PropTypes.func.isRequired,
     submitting: PropTypes.bool.isRequired,
   }
+
   constructor() {
     super()
     this.handleFormData = this.handleFormData.bind(this)
   }
 
   async handleFormData(data) {
+    console.log('form data?', data)
+
     let { client } = this.props
 
     let response = await client.query({
@@ -50,17 +55,18 @@ class SearchLocation extends Component {
           }
         }
       `,
-      variables: { houseId: 189250 },
+      variables: { houseId: data.fileId },
     })
 
     let { data: { dwellings } } = response
 
     console.log('Response from the server:', dwellings) // eslint-disable-line no-console
     // TODO: Handle error case
-    this.props.save(dwellings)
+    this.props.saveFileIdData(dwellings)
   }
 
   render() {
+    let { data = [], handleSubmit, pristine, submitting } = this.props
     return (
       <main role="main">
         <section>
@@ -87,74 +93,36 @@ class SearchLocation extends Component {
 
         <div id="page-body">
           <header>
-            <h1 id="search-by-location-description">
-              <Trans>Search by location</Trans>
+            <h1 id="search-by-fileid-description">
+              <Trans>Search by file ID</Trans>
             </h1>
           </header>
-          <form aria-labelledby="search-by-location-description">
+          <form
+            onSubmit={handleSubmit(this.handleFormData)}
+            aria-labelledby="search-by-description"
+          >
             <h2>
-              <label htmlFor="location" id="location-label">
-                <Trans>Location</Trans>
+              <label htmlFor="fileid" id="fileid-label">
+                <Trans>File ID</Trans>
               </label>
             </h2>
             <p id="location-details">
-              <Trans>
-                Search for a region by submitting the first three digits of a
-                postal code.
-              </Trans>
+              <Trans>Search by the file id on your Energuide evaluation.</Trans>
             </p>
-            <input
+            <Field
+              id="fildId"
+              name="fileId"
+              component="input"
               type="text"
-              name="location"
-              id="location"
-              aria-labelledby="location-label location-details"
+              value=""
             />
 
-            <fieldset>
-              <legend>
-                <h3>
-                  <Trans>Search by Location</Trans>
-                </h3>
-              </legend>
-              <p>
-                <Trans>
-                  Search by the type of energy source. Choose all of the
-                  parameters that apply.
-                </Trans>
-              </p>
-
-              <input
-                type="checkbox"
-                id="energy-source-1"
-                name="energy-source"
-                value="oil"
-              />
-              <label htmlFor="energy-source-1">
-                <Trans>Oil</Trans>
-              </label>
-              <input
-                type="checkbox"
-                id="energy-source-2"
-                name="energy-source"
-                value="electricity"
-              />
-              <label htmlFor="energy-source-2">
-                <Trans>Electricity</Trans>
-              </label>
-              <input
-                type="checkbox"
-                id="energy-source-3"
-                name="energy-source"
-                value="natural-gas"
-              />
-              <label htmlFor="energy-source-3">
-                <Trans>Natural gas</Trans>
-              </label>
-            </fieldset>
-            <button type="submit">
+            <button type="submit" disabled={pristine || submitting}>
               <Trans>Search</Trans>
             </button>
           </form>
+
+          <DataTable data={data} />
 
           <aside>
             <h3>
@@ -171,8 +139,21 @@ class SearchLocation extends Component {
   }
 }
 
+const mapDispatchToProps = dispatch => {
+  return {
+    saveFileIdData: data => {
+      dispatch(saveFileIdData(data))
+    },
+  }
+}
+
 const mapStateToProps = state => ({
   path: state.location.pathname,
+  data: state.searchFileIdData,
 })
 
-export default withApollo(connect(mapStateToProps)(SearchLocation))
+export default compose(
+  withApollo,
+  reduxForm({ form: 'searchByfileId' }),
+  connect(mapStateToProps, mapDispatchToProps),
+)(SearchFileID)

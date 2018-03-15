@@ -1,44 +1,37 @@
 import React, { Component } from 'react'
+import { Field, reduxForm } from 'redux-form'
 import { NavLink } from 'redux-first-router-link'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
-import { withApollo } from 'react-apollo'
+import { compose, withApollo } from 'react-apollo'
 import InfoIcon from './InfoIcon'
-import gql from 'graphql-tag'
 import { Trans } from 'lingui-react'
 
 class Search extends Component {
   static propTypes = {
     dispatch: PropTypes.func.isRequired,
+    handleSubmit: PropTypes.func.isRequired,
+    pristine: PropTypes.bool.isRequired,
+    reset: PropTypes.func.isRequired,
+    submitting: PropTypes.bool.isRequired,
   }
+
   constructor() {
     super()
     this.handleFormData = this.handleFormData.bind(this)
   }
 
   async handleFormData(data) {
-    let { client } = this.props
-
-    let response = await client.mutate({
-      mutation: gql`
-        mutation($uci: String!, $reason: String!) {
-          decline(uci: $uci, reason: $reason) {
-            messageID
-            statusCode
-          }
-        }
-      `,
-      variables: data,
-    })
-
-    let { data: { decline } } = response
-
-    console.log('Response from the server:', decline) // eslint-disable-line no-console
-    // TODO: Handle error case
-    this.props.dispatch({ type: 'THANK_YOU' })
+    if (data.searchBy == 'location') {
+      this.props.dispatch({ type: 'LOCATION' })
+    }
+    if (data.searchBy == 'file-number') {
+      this.props.dispatch({ type: 'FILEID' })
+    }
   }
 
   render() {
+    let { handleSubmit, pristine, submitting } = this.props
     return (
       <main role="main">
         <section>
@@ -46,23 +39,17 @@ class Search extends Component {
             <ol>
               <li>
                 <NavLink to="/">
-                  <a>
-                    <Trans>EnerGuide API</Trans>
-                  </a>
+                  <Trans>EnerGuide API</Trans>
                 </NavLink>
               </li>
               <li>
                 <NavLink to="/search">
-                  <a aria-current="page">
-                    <Trans>Search by</Trans>
-                  </a>
+                  <Trans>Search by</Trans>
                 </NavLink>
               </li>
               <li>
                 <NavLink to="/search-location">
-                  <a aria-current="page">
-                    <Trans>Location</Trans>
-                  </a>
+                  <Trans>Location</Trans>
                 </NavLink>
               </li>
             </ol>
@@ -81,15 +68,19 @@ class Search extends Component {
               number.
             </Trans>
           </p>
-          <form aria-labelledby="search-by-description">
+          <form
+            onSubmit={handleSubmit(this.handleFormData)}
+            aria-labelledby="search-by-description"
+          >
             <fieldset>
               <legend id="search-by-description">
                 <Trans>Search by Location or File number</Trans>
               </legend>
-              <input
-                type="radio"
+              <Field
                 id="search-by-1"
-                name="search-by"
+                name="searchBy"
+                component="input"
+                type="radio"
                 value="location"
               />
               <label htmlFor="search-by-1">
@@ -98,11 +89,11 @@ class Search extends Component {
                   <InfoIcon />
                 </abbr>
               </label>
-
-              <input
-                type="radio"
+              <Field
                 id="search-by-2"
-                name="search-by"
+                name="searchBy"
+                component="input"
+                type="radio"
                 value="file-number"
               />
               <label htmlFor="search-by-2">
@@ -112,7 +103,7 @@ class Search extends Component {
                 </abbr>
               </label>
             </fieldset>
-            <button type="submit">
+            <button type="submit" disabled={pristine || submitting}>
               <Trans>Search</Trans>
             </button>
           </form>
@@ -136,4 +127,8 @@ const mapStateToProps = state => ({
   path: state.location.pathname,
 })
 
-export default withApollo(connect(mapStateToProps)(Search))
+export default compose(
+  withApollo,
+  reduxForm({ form: 'searchBy' }),
+  connect(mapStateToProps),
+)(Search)

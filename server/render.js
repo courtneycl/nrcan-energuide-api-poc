@@ -14,7 +14,7 @@ import { ApolloProvider } from 'react-apollo'
 require('isomorphic-fetch')
 
 const client = new ApolloClient({
-  link: new HttpLink({ uri: '/graphql' }),
+  link: new HttpLink({ uri: 'http://nrcanapi.cds-snc.ca/graphql' }),
   cache: new InMemoryCache(),
   ssrMode: true,
 })

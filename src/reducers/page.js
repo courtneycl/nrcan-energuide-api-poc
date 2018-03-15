@@ -6,6 +6,7 @@ const components = {
   HOME: 'Home',
   SEARCH: 'Search',
   LOCATION: 'SearchLocation',
+  FILEID: 'SearchFileID',
   [NOT_FOUND]: 'NotFound',
 }
 
